@@ -1,9 +1,7 @@
-name: Node.js CI/CD
+name: Automatic Production Deployment (CD)
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [ main ]   # No pull_request trigger - only on push to main
 
 jobs:
   build-and-test:
@@ -19,34 +17,35 @@ jobs:
         run: npm install
       - name: Run tests
         run: npm test
+      - name: Run security scan (simulated)
+        run: |
+          echo "Running security scan..."
+          echo " No critical vulnerabilities found"
 
-  deploy-to-staging:
+  deploy-to-production-automatic:
     needs: build-and-test
     runs-on: ubuntu-latest
-    environment: Staging
+    environment: production-auto   # No approval required!
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Simulate deployment to Staging
+      - name: Automatic deployment to Production
         run: |
-          echo "Deploying application to Staging environment..."
+          echo "========================================="
+          echo "AUTOMATIC PRODUCTION DEPLOYMENT (CD)"
+          echo "========================================="
           echo "Application version: $(git rev-parse --short HEAD)"
-          echo "Deployment to Staging successful!"
-
-  deploy-to-production:
-    needs: deploy-to-staging              # This job depends on Staging deployment passing
-    runs-on: ubuntu-latest
-    environment: Production               # Specify the Production environment
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Simulate deployment to Production
-        run: |
-          echo "Deploying application to Production environment..."
-          echo "Application version: $(git rev-parse --short HEAD)"
-          echo "Deployment to Production successful!"
-          # In a real scenario, this would involve commands to deploy to a cloud service
-          # e.g., `aws s3 sync build/ s3://production-bucket` or `kubectl apply -f k8s-prod.yaml`
+          echo "Deployment timestamp: $(date)"
+          echo ""
+          echo " This deployment happened AUTOMATICALLY without human approval!"
+          echo " Production deployment successful!"
+          echo "========================================="
+          echo ""
+          echo "In a real scenario, this would deploy to:"
+          echo " • Cloud servers"
+          echo " • Kubernetes clusters"
+          echo " • Azure Web Apps"
+          echo " • Or any other production infrastructure"
       - name: Simulated health check
         run: |
           # SIMULATION ONLY: In a real CD pipeline, this would call your application's /health endpoint
@@ -62,3 +61,8 @@ jobs:
             echo "HTTP 500 - Service Unhealthy"
             exit 1   # Exit with non-zero code to indicate failure -> triggers rollback
           fi
+      - name: Post-deployment notification (simulated)
+        run: |
+          echo " Sending deployment notification to team..."
+          echo " Subject: [AUTO] New version $(git rev-parse --short HEAD) deployed to Production"
+          echo " Status: SUCCESS"
